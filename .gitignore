@@ -1,0 +1,10 @@
+bin/
+obj/
+temp/
+*.suo
+*.user
+*.log
+# Business Intelligence projects
+*.rdl.data
+
+.Rproj.user
