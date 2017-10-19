@@ -1,0 +1,31 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Custom for Visual Studio
+*.cs     diff=csharp
+# Custom for SQL Server Integration Service Projects
+*.dtproj	merge=binary
+*.dtsx	merge=binary
+*.conmgr	merge=binary
+*.params	merge=binary
+*.database	merge=binary
+# Custom for SQL Server Reporting Service Projects
+*.rptproj	merge=binary
+*.rds	merge=binary
+# Custom for SQL Server Analysis Service Projects
+*.dwproj	merge=binary
+*.cube	merge=binary
+*.partitions	merge=binary
+*.role	merge=binary
+
+# Standard to msysgit
+*.doc	 diff=astextplain
+*.DOC	 diff=astextplain
+*.docx diff=astextplain
+*.DOCX diff=astextplain
+*.dot  diff=astextplain
+*.DOT  diff=astextplain
+*.pdf  diff=astextplain
+*.PDF	 diff=astextplain
+*.rtf	 diff=astextplain
+*.RTF	 diff=astextplain
