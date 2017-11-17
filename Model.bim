@@ -1,0 +1,970 @@
+{
+  "name": "SemanticModel",
+  "compatibilityLevel": 1200,
+  "model": {
+    "culture": "da-DK",
+    "dataSources": [
+      {
+        "name": "SqlServer dwh03 DW_EDW",
+        "connectionString": "Provider=SQLNCLI11;Data Source=dwh03;Initial Catalog=DW_EDW;Integrated Security=SSPI;Persist Security Info=false",
+        "impersonationMode": "impersonateAccount",
+        "account": "TRAFIK\\XLAJ",
+        "annotations": [
+          {
+            "name": "ConnectionEditUISource",
+            "value": "SqlServer"
+          }
+        ]
+      }
+    ],
+    "tables": [
+      {
+        "name": "Pålidelighed",
+        "columns": [
+          {
+            "name": "YearMonthNo",
+            "dataType": "int64",
+            "sourceColumn": "YearMonthNo",
+            "sourceProviderType": "Integer",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Linje",
+            "dataType": "string",
+            "sourceColumn": "Linje",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "KlumpningAntal",
+            "dataType": "int64",
+            "sourceColumn": "Klumpning",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "Beregning1",
+            "dataType": "int64",
+            "sourceColumn": "Beregning1",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "Beregning2",
+            "dataType": "int64",
+            "sourceColumn": "Beregning2",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "DateKey",
+            "dataType": "int64",
+            "sourceColumn": "DateKey"
+          },
+          {
+            "name": "Klumpning%",
+            "dataType": "int64",
+            "sourceColumn": "Klumpning%"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Pålidelighed",
+            "dataView": "full",
+            "source": {
+              "query": [
+                "WITH t1 AS",
+                "(",
+                "",
+                "SELECT dr.* ",
+                "                 ,d.YearMonthNo",
+                "                             ,jp.LineDesignation",
+                "               ,CASE WHEN ([IsReliable] IS NOT null) THEN 1 ELSE NULL ",
+                "                         END AS observeretmålepunkter",
+                "               ,CASE WHEN (ReliabilityTypeKey = 2 AND ObservedFrequencySeconds <= 60) THEN 1 ELSE NULL ",
+                "                         END AS Congestion",
+                "  FROM [DW_EDW].[fact].[RT_DrivingReliability_TimingPoint] dr",
+                "    JOIN dim.Date d ON d.DateKey = dr.DateKey",
+                "  JOIN dim.JourneyPattern jp ON jp.JourneyPatternKey = dr.JourneyPatternKey",
+                "",
+                "  WHERE d.YearMonthNo between 201501 and 202012",
+                "  AND jp.LineDesignation in  ('230R','260R','310R','320R','360R','375R','380R','390R','420R','430R','440R','470R','480R','620R','630R','660R','661R','720R','120','123','184','215','220','234','240','245','354','370','425','460','490','520','540','560','570','670','680','730','736','740','901','902','410','150S','200S','250S','300S','350S','400S/400','500S','600S','1A','2A','3A','4A','5A/5C','6A','8A','9A','101A','102A','201A','202A','401A','501A','601A','801A','110R','210R','510R','710R','910R','920R','930R','940R','960R','203','301','302','402','405','421','422','551','552','602','603','701','702','903','904','905','908') ",
+                "  )",
+                "   SELECT",
+                "   DateKey",
+                "   ,YearMonthNo",
+                "   ,LineDesignation as Linje",
+                "   ,IIF(SUM(Congestion) is null, 0, SUM(Congestion) ) AS Klumpning",
+                "   ,IIF(SUM(Congestion) is null, 0, SUM(Congestion) / 100 ) AS 'Klumpning%'",
+                "   --,IIF(SUM(CAST([IsReliable]) AS TINYINT ) is null, 0, SUM(CAST([IsReliable]) AS TINYINT ) ) as Beregning1 ",
+                "   ",
+                "   ,SUM(COALESCE([IsReliable], 0)) AS Beregning1",
+                "   ,IIF(SUM(observeretmålepunkter) is null, 0, SUM(observeretmålepunkter) ) as Beregning2",
+                "",
+                "-- ,SUM(COALESCE([IsRelaible], 0)) / sum(coalesce(oberserveretmålepunkter,0 ) ) as Pålidelighed",
+                "-- CAST([IsReliable] AS TINYINT))*1.00/SUM(observeretmålepunkter)*1.00 aS Pålidelighed",
+                "   FROM t1",
+                "   group BY",
+                "   DateKey ",
+                "   ,YearMonthNo",
+                "   ,LineDesignation"
+              ],
+              "dataSource": "SqlServer dwh03 DW_EDW"
+            },
+            "annotations": [
+              {
+                "name": "QueryEditorSerialization",
+                "value": [
+                  "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>WITH t1 AS",
+                  "(",
+                  "",
+                  "SELECT dr.* ",
+                  "                 ,d.YearMonthNo",
+                  "                             ,jp.LineDesignation",
+                  "               ,CASE WHEN ([IsReliable] IS NOT null) THEN 1 ELSE NULL ",
+                  "                         END AS observeretmålepunkter",
+                  "               ,CASE WHEN (ReliabilityTypeKey = 2 AND ObservedFrequencySeconds <= 60) THEN 1 ELSE NULL ",
+                  "                         END AS Congestion",
+                  "  FROM [DW_EDW].[fact].[RT_DrivingReliability_TimingPoint] dr",
+                  "    JOIN dim.Date d ON d.DateKey = dr.DateKey",
+                  "  JOIN dim.JourneyPattern jp ON jp.JourneyPatternKey = dr.JourneyPatternKey",
+                  "",
+                  "  WHERE d.YearMonthNo between 201501 and 202012",
+                  "  AND jp.LineDesignation in  ('230R','260R','310R','320R','360R','375R','380R','390R','420R','430R','440R','470R','480R','620R','630R','660R','661R','720R','120','123','184','215','220','234','240','245','354','370','425','460','490','520','540','560','570','670','680','730','736','740','901','902','410','150S','200S','250S','300S','350S','400S/400','500S','600S','1A','2A','3A','4A','5A/5C','6A','8A','9A','101A','102A','201A','202A','401A','501A','601A','801A','110R','210R','510R','710R','910R','920R','930R','940R','960R','203','301','302','402','405','421','422','551','552','602','603','701','702','903','904','905','908') ",
+                  "  )",
+                  "   SELECT",
+                  "   DateKey",
+                  "   ,YearMonthNo",
+                  "   ,LineDesignation as Linje",
+                  "   ,IIF(SUM(Congestion) is null, 0, SUM(Congestion) ) AS Klumpning",
+                  "   ,IIF(SUM(Congestion) is null, 0, SUM(Congestion) / 100 ) AS 'Klumpning%'",
+                  "   --,IIF(SUM(CAST([IsReliable]) AS TINYINT ) is null, 0, SUM(CAST([IsReliable]) AS TINYINT ) ) as Beregning1 ",
+                  "   ",
+                  "   ,SUM(COALESCE([IsReliable], 0)) AS Beregning1",
+                  "   ,IIF(SUM(observeretmålepunkter) is null, 0, SUM(observeretmålepunkter) ) as Beregning2",
+                  "",
+                  "-- ,SUM(COALESCE([IsRelaible], 0)) / sum(coalesce(oberserveretmålepunkter,0 ) ) as Pålidelighed",
+                  "-- CAST([IsReliable] AS TINYINT))*1.00/SUM(observeretmålepunkter)*1.00 aS Pålidelighed",
+                  "   FROM t1",
+                  "   group BY",
+                  "   DateKey ",
+                  "   ,YearMonthNo",
+                  "   ,LineDesignation</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+                ]
+              }
+            ]
+          }
+        ],
+        "measures": [
+          {
+            "name": "Pålidelighed %",
+            "expression": " DIVIDE( SUM( 'Pålidelighed'[Beregning1] ), SUM('Pålidelighed'[Beregning2] ) )",
+            "formatString": "0.00 %;-0.00 %;0.00 %",
+            "displayFolder": "_Measures"
+          },
+          {
+            "name": "Klumpning",
+            "expression": " SUM('Pålidelighed'[KlumpningAntal])",
+            "formatString": "#,0",
+            "displayFolder": "_Measures"
+          },
+          {
+            "name": "Pålidelighed mål",
+            "expression": " 0.85",
+            "formatString": "0.00 %;-0.00 %;0.00 %",
+            "displayFolder": "_Measures"
+          },
+          {
+            "name": "Klumpning %",
+            "expression": "SUM('Pålidelighed'[Klumpning%]) / 1000",
+            "formatString": "#,0 %;-#,0 %;#,0 %"
+          },
+          {
+            "name": "Klumpning IÅ",
+            "expression": " CALCULATE( [Klumpning], Tid[CurrentYearFlag] = TRUE())"
+          },
+          {
+            "name": "Klumpning % SÅ",
+            "expression": " CALCULATE( [Klumpning %] , SAMEPERIODLASTYEAR(Tid[Date]))",
+            "formatString": "#,0 %;-#,0 %;#,0 %"
+          },
+          {
+            "name": "Pålidelighed % SÅ",
+            "expression": " CALCULATE([Pålidelighed %], SAMEPERIODLASTYEAR(Tid[Date] ) )",
+            "formatString": "#,0.00 %;-#,0.00 %;#,0.00 %"
+          }
+        ],
+        "annotations": [
+          {
+            "name": "_TM_ExtProp_QueryDefinition",
+            "value": [
+              "WITH t1 AS",
+              "(",
+              "",
+              "SELECT dr.* ",
+              "                 ,d.YearMonthNo",
+              "                             ,jp.LineDesignation",
+              "               ,CASE WHEN ([IsReliable] IS NOT null) THEN 1 ELSE NULL ",
+              "                         END AS observeretmålepunkter",
+              "               ,CASE WHEN (ReliabilityTypeKey = 2 AND ObservedFrequencySeconds <= 60) THEN 1 ELSE NULL ",
+              "                         END AS Congestion",
+              "  FROM [DW_EDW].[fact].[RT_DrivingReliability_TimingPoint] dr",
+              "    JOIN dim.Date d ON d.DateKey = dr.DateKey",
+              "  JOIN dim.JourneyPattern jp ON jp.JourneyPatternKey = dr.JourneyPatternKey",
+              "",
+              "  WHERE d.YearMonthNo between 201501 and 202012",
+              "  AND jp.LineDesignation in  ('230R','260R','310R','320R','360R','375R','380R','390R','420R','430R','440R','470R','480R','620R','630R','660R','661R','720R','120','123','184','215','220','234','240','245','354','370','425','460','490','520','540','560','570','670','680','730','736','740','901','902','410','150S','200S','250S','300S','350S','400S/400','500S','600S','1A','2A','3A','4A','5A/5C','6A','8A','9A','101A','102A','201A','202A','401A','501A','601A','801A','110R','210R','510R','710R','910R','920R','930R','940R','960R','203','301','302','402','405','421','422','551','552','602','603','701','702','903','904','905','908') ",
+              "  )",
+              "   SELECT",
+              "   DateKey",
+              "   ,YearMonthNo",
+              "   ,LineDesignation as Linje",
+              "   ,IIF(SUM(Congestion) is null, 0, SUM(Congestion) ) AS Klumpning",
+              "   ,IIF(SUM(Congestion) is null, 0, SUM(Congestion) / 100 ) AS 'Klumpning%'",
+              "   --,IIF(SUM(CAST([IsReliable]) AS TINYINT ) is null, 0, SUM(CAST([IsReliable]) AS TINYINT ) ) as Beregning1 ",
+              "   ",
+              "   ,SUM(COALESCE([IsReliable], 0)) AS Beregning1",
+              "   ,IIF(SUM(observeretmålepunkter) is null, 0, SUM(observeretmålepunkter) ) as Beregning2",
+              "",
+              "-- ,SUM(COALESCE([IsRelaible], 0)) / sum(coalesce(oberserveretmålepunkter,0 ) ) as Pålidelighed",
+              "-- CAST([IsReliable] AS TINYINT))*1.00/SUM(observeretmålepunkter)*1.00 aS Pålidelighed",
+              "   FROM t1",
+              "   group BY",
+              "   DateKey ",
+              "   ,YearMonthNo",
+              "   ,LineDesignation"
+            ]
+          },
+          {
+            "name": "_TM_ExtProp_DbTableName",
+            "value": "Pålidelighed"
+          },
+          {
+            "name": "QueryEditorSerialization",
+            "value": [
+              "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>WITH t1 AS",
+              "(",
+              "",
+              "SELECT dr.* ",
+              "                 ,d.YearMonthNo",
+              "                             ,jp.LineDesignation",
+              "               ,CASE WHEN ([IsReliable] IS NOT null) THEN 1 ELSE NULL ",
+              "                         END AS observeretmålepunkter",
+              "               ,CASE WHEN (ReliabilityTypeKey = 2 AND ObservedFrequencySeconds <= 60) THEN 1 ELSE NULL ",
+              "                         END AS Congestion",
+              "  FROM [DW_EDW].[fact].[RT_DrivingReliability_TimingPoint] dr",
+              "    JOIN dim.Date d ON d.DateKey = dr.DateKey",
+              "  JOIN dim.JourneyPattern jp ON jp.JourneyPatternKey = dr.JourneyPatternKey",
+              "",
+              "  WHERE d.YearMonthNo between 201501 and 202012",
+              "  AND jp.LineDesignation in  ('230R','260R','310R','320R','360R','375R','380R','390R','420R','430R','440R','470R','480R','620R','630R','660R','661R','720R','120','123','184','215','220','234','240','245','354','370','425','460','490','520','540','560','570','670','680','730','736','740','901','902','410','150S','200S','250S','300S','350S','400S/400','500S','600S','1A','2A','3A','4A','5A/5C','6A','8A','9A','101A','102A','201A','202A','401A','501A','601A','801A','110R','210R','510R','710R','910R','920R','930R','940R','960R','203','301','302','402','405','421','422','551','552','602','603','701','702','903','904','905','908') ",
+              "  )",
+              "   SELECT",
+              "   DateKey",
+              "   ,YearMonthNo",
+              "   ,LineDesignation as Linje",
+              "   ,IIF(SUM(Congestion) is null, 0, SUM(Congestion) ) AS Klumpning",
+              "   ,IIF(SUM(Congestion) is null, 0, SUM(Congestion) / 100 ) AS 'Klumpning%'",
+              "   --,IIF(SUM(CAST([IsReliable]) AS TINYINT ) is null, 0, SUM(CAST([IsReliable]) AS TINYINT ) ) as Beregning1 ",
+              "   ",
+              "   ,SUM(COALESCE([IsReliable], 0)) AS Beregning1",
+              "   ,IIF(SUM(observeretmålepunkter) is null, 0, SUM(observeretmålepunkter) ) as Beregning2",
+              "",
+              "-- ,SUM(COALESCE([IsRelaible], 0)) / sum(coalesce(oberserveretmålepunkter,0 ) ) as Pålidelighed",
+              "-- CAST([IsReliable] AS TINYINT))*1.00/SUM(observeretmålepunkter)*1.00 aS Pålidelighed",
+              "   FROM t1",
+              "   group BY",
+              "   DateKey ",
+              "   ,YearMonthNo",
+              "   ,LineDesignation</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Tid",
+        "dataCategory": "Time",
+        "columns": [
+          {
+            "name": "DateKey",
+            "dataType": "int64",
+            "sourceColumn": "DateKey",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "Date",
+            "dataType": "dateTime",
+            "isKey": true,
+            "sourceColumn": "Date",
+            "formatString": "General Date",
+            "sourceProviderType": "Date"
+          },
+          {
+            "name": "DateTime",
+            "dataType": "dateTime",
+            "sourceColumn": "DateTime",
+            "formatString": "General Date",
+            "sourceProviderType": "Date"
+          },
+          {
+            "name": "DateTime2(0)",
+            "dataType": "dateTime",
+            "sourceColumn": "DateTime2(0)",
+            "formatString": "General Date",
+            "sourceProviderType": "Date"
+          },
+          {
+            "name": "DateTime2(7)",
+            "dataType": "dateTime",
+            "sourceColumn": "DateTime2(7)",
+            "formatString": "General Date",
+            "sourceProviderType": "Date"
+          },
+          {
+            "name": "YesterdayFlag",
+            "dataType": "boolean",
+            "sourceColumn": "YesterdayFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "TodayFlag",
+            "dataType": "boolean",
+            "sourceColumn": "TodayFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "TomorrowFlag",
+            "dataType": "boolean",
+            "sourceColumn": "TomorrowFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "FirstDayOfMonthFlag",
+            "dataType": "boolean",
+            "sourceColumn": "FirstDayOfMonthFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "LastDayOfMonthFlag",
+            "dataType": "boolean",
+            "sourceColumn": "LastDayOfMonthFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "Year",
+            "dataType": "int64",
+            "sourceColumn": "Year",
+            "sourceProviderType": "Integer",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Quarter",
+            "dataType": "string",
+            "sourceColumn": "Quarter",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "QuarterNo",
+            "dataType": "int64",
+            "sourceColumn": "QuarterNo",
+            "sourceProviderType": "UnsignedTinyInt"
+          },
+          {
+            "name": "Month",
+            "dataType": "string",
+            "sourceColumn": "Month",
+            "sortByColumn": "MonthNo",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "MonthNo",
+            "dataType": "int64",
+            "sourceColumn": "MonthNo",
+            "sourceProviderType": "UnsignedTinyInt",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "WeekNo",
+            "dataType": "int64",
+            "sourceColumn": "WeekNo",
+            "sourceProviderType": "UnsignedTinyInt"
+          },
+          {
+            "name": "Day",
+            "dataType": "string",
+            "sourceColumn": "Day",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "DayNoOfWeek",
+            "dataType": "int64",
+            "sourceColumn": "DayNoOfWeek",
+            "sourceProviderType": "UnsignedTinyInt"
+          },
+          {
+            "name": "DayNoOfMonth",
+            "dataType": "int64",
+            "sourceColumn": "DayNoOfMonth",
+            "sourceProviderType": "UnsignedTinyInt"
+          },
+          {
+            "name": "DayNoOfYear",
+            "dataType": "int64",
+            "sourceColumn": "DayNoOfYear",
+            "sourceProviderType": "SmallInt"
+          },
+          {
+            "name": "YearMonthNo",
+            "dataType": "int64",
+            "sourceColumn": "YearMonthNo",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "YearQuarterNo",
+            "dataType": "int64",
+            "sourceColumn": "YearQuarterNo",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "YearMonth",
+            "dataType": "string",
+            "sourceColumn": "YearMonth",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "YearQuarter",
+            "dataType": "string",
+            "sourceColumn": "YearQuarter",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "Last7DaysFlag",
+            "dataType": "boolean",
+            "sourceColumn": "Last7DaysFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "Last14DaysFlag",
+            "dataType": "boolean",
+            "sourceColumn": "Last14DaysFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "Last4WeeksFlag",
+            "dataType": "boolean",
+            "sourceColumn": "Last4WeeksFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "Last8WeeksFlag",
+            "dataType": "boolean",
+            "sourceColumn": "Last8WeeksFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "Last12MonthsFlag",
+            "dataType": "boolean",
+            "sourceColumn": "Last12MonthsFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "CurrentWeekFlag",
+            "dataType": "boolean",
+            "sourceColumn": "CurrentWeekFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "CurrentMonthFlag",
+            "dataType": "boolean",
+            "sourceColumn": "CurrentMonthFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "CurrentQuarterFlag",
+            "dataType": "boolean",
+            "sourceColumn": "CurrentQuarterFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "CurrentYearFlag",
+            "dataType": "boolean",
+            "sourceColumn": "CurrentYearFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "CurrentYearBeginFlag",
+            "dataType": "boolean",
+            "sourceColumn": "CurrentYearBeginFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "CurrentYearEndFlag",
+            "dataType": "boolean",
+            "sourceColumn": "CurrentYearEndFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "CurrentYearToDateFlag",
+            "dataType": "boolean",
+            "sourceColumn": "CurrentYearToDateFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "DstFlag",
+            "dataType": "boolean",
+            "sourceColumn": "DstFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "HolidayYear",
+            "dataType": "string",
+            "sourceColumn": "HolidayYear",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "DanishHolidayFlag",
+            "dataType": "boolean",
+            "sourceColumn": "DanishHolidayFlag",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          },
+          {
+            "name": "DanishHoliday(Danish)",
+            "dataType": "string",
+            "sourceColumn": "DanishHoliday(Danish)",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "DanishHoliday(English)",
+            "dataType": "string",
+            "sourceColumn": "DanishHoliday(English)",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "StandardHours",
+            "dataType": "double",
+            "sourceColumn": "StandardHours",
+            "sourceProviderType": "Decimal"
+          },
+          {
+            "name": "YearWeekCode",
+            "dataType": "string",
+            "sourceColumn": "YearWeekCode",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "YearWeekNumber",
+            "dataType": "int64",
+            "sourceColumn": "YearWeekNumber",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "YearWeekDisplayName",
+            "dataType": "string",
+            "sourceColumn": "YearWeekDisplayName",
+            "sourceProviderType": "VarChar"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Tid",
+            "dataView": "full",
+            "source": {
+              "query": [
+                "SELECT *",
+                "  FROM [DW_EDW].[dim].[Date]",
+                "  where [date] >= '2013-01-01' and [date] <= '2025-12-31' ",
+                "  order by [Date]"
+              ],
+              "dataSource": "SqlServer dwh03 DW_EDW"
+            },
+            "annotations": [
+              {
+                "name": "QueryEditorSerialization",
+                "value": [
+                  "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>SELECT *",
+                  "  FROM [DW_EDW].[dim].[Date]",
+                  "  where [date] >= '2013-01-01' and [date] <= '2025-12-31' ",
+                  "  order by [Date]</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+                ]
+              }
+            ]
+          }
+        ],
+        "annotations": [
+          {
+            "name": "_TM_ExtProp_QueryDefinition",
+            "value": [
+              "SELECT *",
+              "  FROM [DW_EDW].[dim].[Date]",
+              "  where [date] >= '2013-01-01' and [date] <= '2025-12-31' ",
+              "  order by [Date]"
+            ]
+          },
+          {
+            "name": "_TM_ExtProp_DbTableName",
+            "value": "Tid"
+          },
+          {
+            "name": "QueryEditorSerialization",
+            "value": [
+              "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>SELECT *",
+              "  FROM [DW_EDW].[dim].[Date]",
+              "  where [date] >= '2013-01-01' and [date] <= '2025-12-31' ",
+              "  order by [Date]</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Tilfredshed",
+        "columns": [
+          {
+            "name": "DateKey",
+            "dataType": "int64",
+            "sourceColumn": "DateKey",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "ContractorCode",
+            "dataType": "string",
+            "sourceColumn": "ContractorCode",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "SurveyQuestionTypeId",
+            "dataType": "int64",
+            "sourceColumn": "SurveyQuestionTypeId",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "MegetTilfreds",
+            "dataType": "int64",
+            "sourceColumn": "MegetTilfreds",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "Tilfreds",
+            "dataType": "int64",
+            "sourceColumn": "Tilfreds",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "BådeOg",
+            "dataType": "int64",
+            "sourceColumn": "BådeOg",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "Utilfreds",
+            "dataType": "int64",
+            "sourceColumn": "Utilfreds",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "MegetUtilfreds",
+            "dataType": "int64",
+            "sourceColumn": "MegetUtilfreds",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "VedIkke",
+            "dataType": "int64",
+            "sourceColumn": "VedIkke",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "AntalBesvarelser",
+            "dataType": "int64",
+            "sourceColumn": "AntalBesvarelser",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "SurveyQuestionKey",
+            "dataType": "int64",
+            "sourceColumn": "SurveyQuestionKey",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "SurveyQuestionDisplayIndex",
+            "dataType": "int64",
+            "sourceColumn": "SurveyQuestionDisplayIndex",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "DataQualityTypeKey",
+            "dataType": "int64",
+            "sourceColumn": "DataQualityTypeKey",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "Kontrakt",
+            "dataType": "string",
+            "sourceColumn": "Kontrakt"
+          },
+          {
+            "name": "SurveyType",
+            "dataType": "string",
+            "sourceColumn": "SurveyType"
+          },
+          {
+            "name": "Survey",
+            "dataType": "string",
+            "sourceColumn": "Survey"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Tilfredshed",
+            "dataView": "full",
+            "source": {
+              "query": [
+                "select ",
+                "DateKey, ContractorCode, ContractorName as Kontrakt,",
+                "SurveyQuestionTypeName as SurveyType, SurveyQuestionTypeId, SurveyQuestionDisplayName as Survey,",
+                "sum(isnull([1], 0)) AS 'MegetTilfreds', sum(isnull([2], 0)) AS 'Tilfreds', sum(isnull([3], 0)) AS 'BådeOg', ",
+                "sum(isnull([4], 0)) AS 'Utilfreds', sum(isnull([5], 0)) AS 'MegetUtilfreds', sum(isnull([6], 0)) AS 'VedIkke',",
+                "sum(isnull([1], 0)+isnull([2], 0)+isnull([3], 0)+isnull([4], 0)+isnull([5], 0)+isnull([6], 0)) AS AntalBesvarelser",
+                "",
+                ",SurveyQuestionKey, SurveyQuestionDisplayIndex, DataQualityTypeKey",
+                "from (",
+                "",
+                "select",
+                "f.DateKey, f.JourneyRef, f.DataQualityTypeKey,",
+                "c.ContractorCode, c.ContractorName,",
+                "q.SurveyQuestionTypeName, q.SurveyQuestionTypeId, q.SurveyQuestionKey, q.SurveyQuestionDisplayIndex,",
+                "q.SurveyQuestionDisplayName, a.SurveyAnswerValue, a.SurveyAnswerText, count(*) as cnt",
+                "",
+                "FROM fact.QA_ServiceQualitySurvey_Answer as f",
+                "inner join [dim].[QA_SurveyQuestion] as q",
+                " on (f.SurveyQuestionKey = q.SurveyQuestionKey and q.IsCurrent = 1)",
+                "inner join [dim].[QA_SurveyAnswer] as a",
+                " on (f.SurveyAnswerKey = a.SurveyAnswerKey and a.IsCurrent = 1)",
+                "inner join dim.Contractor as c",
+                " on (f.ContractorKey = c.ContractorKey and c.IsCurrent = 1)",
+                "where SurveyQuestionTypeId = 1",
+                "group by ",
+                "f.DateKey, f.JourneyRef, f.DataQualityTypeKey, c.ContractorCode, c.ContractorName, ",
+                "SurveyQuestionTypeId,",
+                "q.SurveyQuestionTypeName, q.SurveyQuestionDisplayName, a.SurveyAnswerValue, a.SurveyAnswerText, q.SurveyQuestionKey, q.SurveyQuestionDisplayIndex",
+                "",
+                ") as p",
+                "pivot",
+                "(",
+                "sum(cnt)",
+                "for SurveyAnswerValue IN ( [1], [2], [3], [4], [5], [6] )",
+                ") AS pvt",
+                "group by DateKey, DataQualityTypeKey, ContractorCode, ContractorName, SurveyQuestionTypeName, SurveyQuestionTypeId, SurveyQuestionDisplayName",
+                ",SurveyQuestionKey, SurveyQuestionDisplayIndex"
+              ],
+              "dataSource": "SqlServer dwh03 DW_EDW"
+            },
+            "annotations": [
+              {
+                "name": "QueryEditorSerialization",
+                "value": [
+                  "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>select ",
+                  "DateKey, ContractorCode, ContractorName as Kontrakt,",
+                  "SurveyQuestionTypeName as SurveyType, SurveyQuestionTypeId, SurveyQuestionDisplayName as Survey,",
+                  "sum(isnull([1], 0)) AS 'MegetTilfreds', sum(isnull([2], 0)) AS 'Tilfreds', sum(isnull([3], 0)) AS 'BådeOg', ",
+                  "sum(isnull([4], 0)) AS 'Utilfreds', sum(isnull([5], 0)) AS 'MegetUtilfreds', sum(isnull([6], 0)) AS 'VedIkke',",
+                  "sum(isnull([1], 0)+isnull([2], 0)+isnull([3], 0)+isnull([4], 0)+isnull([5], 0)+isnull([6], 0)) AS AntalBesvarelser",
+                  "",
+                  ",SurveyQuestionKey, SurveyQuestionDisplayIndex, DataQualityTypeKey",
+                  "from (",
+                  "",
+                  "select",
+                  "f.DateKey, f.JourneyRef, f.DataQualityTypeKey,",
+                  "c.ContractorCode, c.ContractorName,",
+                  "q.SurveyQuestionTypeName, q.SurveyQuestionTypeId, q.SurveyQuestionKey, q.SurveyQuestionDisplayIndex,",
+                  "q.SurveyQuestionDisplayName, a.SurveyAnswerValue, a.SurveyAnswerText, count(*) as cnt",
+                  "",
+                  "FROM fact.QA_ServiceQualitySurvey_Answer as f",
+                  "inner join [dim].[QA_SurveyQuestion] as q",
+                  " on (f.SurveyQuestionKey = q.SurveyQuestionKey and q.IsCurrent = 1)",
+                  "inner join [dim].[QA_SurveyAnswer] as a",
+                  " on (f.SurveyAnswerKey = a.SurveyAnswerKey and a.IsCurrent = 1)",
+                  "inner join dim.Contractor as c",
+                  " on (f.ContractorKey = c.ContractorKey and c.IsCurrent = 1)",
+                  "where SurveyQuestionTypeId = 1",
+                  "group by ",
+                  "f.DateKey, f.JourneyRef, f.DataQualityTypeKey, c.ContractorCode, c.ContractorName, ",
+                  "SurveyQuestionTypeId,",
+                  "q.SurveyQuestionTypeName, q.SurveyQuestionDisplayName, a.SurveyAnswerValue, a.SurveyAnswerText, q.SurveyQuestionKey, q.SurveyQuestionDisplayIndex",
+                  "",
+                  ") as p",
+                  "pivot",
+                  "(",
+                  "sum(cnt)",
+                  "for SurveyAnswerValue IN ( [1], [2], [3], [4], [5], [6] )",
+                  ") AS pvt",
+                  "group by DateKey, DataQualityTypeKey, ContractorCode, ContractorName, SurveyQuestionTypeName, SurveyQuestionTypeId, SurveyQuestionDisplayName",
+                  ",SurveyQuestionKey, SurveyQuestionDisplayIndex</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+                ]
+              }
+            ]
+          }
+        ],
+        "measures": [
+          {
+            "name": "Tilfredse",
+            "expression": " SUM( Tilfredshed[MegetTilfreds] ) + SUM( Tilfredshed[Tilfreds] )",
+            "formatString": "#,0"
+          },
+          {
+            "name": "Tilfredshedsgrad_t %",
+            "expression": " DIVIDE(  Tilfredshed[Tilfredse] , [AntalbesvarelserBeregning] )",
+            "formatString": "0.00 %;-0.00 %;0.00 %"
+          },
+          {
+            "name": "Tilfredshedsgrad % SÅ",
+            "expression": " CALCULATE( Tilfredshed[Tilfredshedsgrad_t %] , SAMEPERIODLASTYEAR( Tid[Date] ) )",
+            "formatString": "0.00 %;-0.00 %;0.00 %"
+          },
+          {
+            "name": "Tilfredshedsgrad_tilfreds %",
+            "expression": " DIVIDE( SUM( Tilfredshed[Tilfreds]), [AntalbesvarelserBeregning]  )",
+            "formatString": "0.00 %;-0.00 %;0.00 %"
+          },
+          {
+            "name": "Tilfredshedsgrad_megettilfreds %",
+            "expression": " DIVIDE( SUM( Tilfredshed[MegetTilfreds]), [AntalbesvarelserBeregning] )",
+            "formatString": "0.00 %;-0.00 %;0.00 %"
+          },
+          {
+            "name": "AntalbesvarelserBeregning",
+            "expression": " SUM( Tilfredshed[AntalBesvarelser] ) - SUM( Tilfredshed[VedIkke] )",
+            "formatString": "#,0"
+          }
+        ],
+        "annotations": [
+          {
+            "name": "_TM_ExtProp_QueryDefinition",
+            "value": [
+              "select ",
+              "DateKey, ContractorCode, ContractorName as Kontrakt,",
+              "SurveyQuestionTypeName as SurveyType, SurveyQuestionTypeId, SurveyQuestionDisplayName as Survey,",
+              "sum(isnull([1], 0)) AS 'MegetTilfreds', sum(isnull([2], 0)) AS 'Tilfreds', sum(isnull([3], 0)) AS 'BådeOg', ",
+              "sum(isnull([4], 0)) AS 'Utilfreds', sum(isnull([5], 0)) AS 'MegetUtilfreds', sum(isnull([6], 0)) AS 'VedIkke',",
+              "sum(isnull([1], 0)+isnull([2], 0)+isnull([3], 0)+isnull([4], 0)+isnull([5], 0)+isnull([6], 0)) AS AntalBesvarelser",
+              "",
+              ",SurveyQuestionKey, SurveyQuestionDisplayIndex, DataQualityTypeKey",
+              "from (",
+              "",
+              "select",
+              "f.DateKey, f.JourneyRef, f.DataQualityTypeKey,",
+              "c.ContractorCode, c.ContractorName,",
+              "q.SurveyQuestionTypeName, q.SurveyQuestionTypeId, q.SurveyQuestionKey, q.SurveyQuestionDisplayIndex,",
+              "q.SurveyQuestionDisplayName, a.SurveyAnswerValue, a.SurveyAnswerText, count(*) as cnt",
+              "",
+              "FROM fact.QA_ServiceQualitySurvey_Answer as f",
+              "inner join [dim].[QA_SurveyQuestion] as q",
+              " on (f.SurveyQuestionKey = q.SurveyQuestionKey and q.IsCurrent = 1)",
+              "inner join [dim].[QA_SurveyAnswer] as a",
+              " on (f.SurveyAnswerKey = a.SurveyAnswerKey and a.IsCurrent = 1)",
+              "inner join dim.Contractor as c",
+              " on (f.ContractorKey = c.ContractorKey and c.IsCurrent = 1)",
+              "where SurveyQuestionTypeId = 1",
+              "group by ",
+              "f.DateKey, f.JourneyRef, f.DataQualityTypeKey, c.ContractorCode, c.ContractorName, ",
+              "SurveyQuestionTypeId,",
+              "q.SurveyQuestionTypeName, q.SurveyQuestionDisplayName, a.SurveyAnswerValue, a.SurveyAnswerText, q.SurveyQuestionKey, q.SurveyQuestionDisplayIndex",
+              "",
+              ") as p",
+              "pivot",
+              "(",
+              "sum(cnt)",
+              "for SurveyAnswerValue IN ( [1], [2], [3], [4], [5], [6] )",
+              ") AS pvt",
+              "group by DateKey, DataQualityTypeKey, ContractorCode, ContractorName, SurveyQuestionTypeName, SurveyQuestionTypeId, SurveyQuestionDisplayName",
+              ",SurveyQuestionKey, SurveyQuestionDisplayIndex"
+            ]
+          },
+          {
+            "name": "_TM_ExtProp_DbTableName",
+            "value": "Tilfredshed"
+          },
+          {
+            "name": "QueryEditorSerialization",
+            "value": [
+              "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>select ",
+              "DateKey, ContractorCode, ContractorName as Kontrakt,",
+              "SurveyQuestionTypeName as SurveyType, SurveyQuestionTypeId, SurveyQuestionDisplayName as Survey,",
+              "sum(isnull([1], 0)) AS 'MegetTilfreds', sum(isnull([2], 0)) AS 'Tilfreds', sum(isnull([3], 0)) AS 'BådeOg', ",
+              "sum(isnull([4], 0)) AS 'Utilfreds', sum(isnull([5], 0)) AS 'MegetUtilfreds', sum(isnull([6], 0)) AS 'VedIkke',",
+              "sum(isnull([1], 0)+isnull([2], 0)+isnull([3], 0)+isnull([4], 0)+isnull([5], 0)+isnull([6], 0)) AS AntalBesvarelser",
+              "",
+              ",SurveyQuestionKey, SurveyQuestionDisplayIndex, DataQualityTypeKey",
+              "from (",
+              "",
+              "select",
+              "f.DateKey, f.JourneyRef, f.DataQualityTypeKey,",
+              "c.ContractorCode, c.ContractorName,",
+              "q.SurveyQuestionTypeName, q.SurveyQuestionTypeId, q.SurveyQuestionKey, q.SurveyQuestionDisplayIndex,",
+              "q.SurveyQuestionDisplayName, a.SurveyAnswerValue, a.SurveyAnswerText, count(*) as cnt",
+              "",
+              "FROM fact.QA_ServiceQualitySurvey_Answer as f",
+              "inner join [dim].[QA_SurveyQuestion] as q",
+              " on (f.SurveyQuestionKey = q.SurveyQuestionKey and q.IsCurrent = 1)",
+              "inner join [dim].[QA_SurveyAnswer] as a",
+              " on (f.SurveyAnswerKey = a.SurveyAnswerKey and a.IsCurrent = 1)",
+              "inner join dim.Contractor as c",
+              " on (f.ContractorKey = c.ContractorKey and c.IsCurrent = 1)",
+              "where SurveyQuestionTypeId = 1",
+              "group by ",
+              "f.DateKey, f.JourneyRef, f.DataQualityTypeKey, c.ContractorCode, c.ContractorName, ",
+              "SurveyQuestionTypeId,",
+              "q.SurveyQuestionTypeName, q.SurveyQuestionDisplayName, a.SurveyAnswerValue, a.SurveyAnswerText, q.SurveyQuestionKey, q.SurveyQuestionDisplayIndex",
+              "",
+              ") as p",
+              "pivot",
+              "(",
+              "sum(cnt)",
+              "for SurveyAnswerValue IN ( [1], [2], [3], [4], [5], [6] )",
+              ") AS pvt",
+              "group by DateKey, DataQualityTypeKey, ContractorCode, ContractorName, SurveyQuestionTypeName, SurveyQuestionTypeId, SurveyQuestionDisplayName",
+              ",SurveyQuestionKey, SurveyQuestionDisplayIndex</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+            ]
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "fc26c769-54ef-4738-8d01-a3de130c3f1c",
+        "fromTable": "Pålidelighed",
+        "fromColumn": "DateKey",
+        "toTable": "Tid",
+        "toColumn": "DateKey"
+      },
+      {
+        "name": "98322b2c-e521-4e98-a77d-d1f5f96c5088",
+        "fromTable": "Tilfredshed",
+        "fromColumn": "DateKey",
+        "toTable": "Tid",
+        "toColumn": "DateKey"
+      }
+    ],
+    "annotations": [
+      {
+        "name": "ClientCompatibilityLevel",
+        "value": "400"
+      }
+    ]
+  },
+  "id": "SemanticModel"
+}
